@@ -1,32 +1,21 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { deviceAuthorization } from "better-auth/plugins";
 import prisma from "./db.js";
+import { deviceAuthorization } from "better-auth/plugins";
 
 export const auth = betterAuth({
-  // ✅ Database
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
 
-  // ✅ MUST be backend URL (Render in prod, localhost in dev)
+  // 🔥 MUST be Render URL
   baseURL: process.env.AUTH_BASE_URL,
-
-  // ✅ DO NOT CHANGE
   basePath: "/api/auth",
 
-  // ✅ Frontend URL (Vercel)
-  trustedOrigins: [process.env.CLIENT_URL],
+  trustedOrigins: [
+    process.env.CLIENT_URL, // Vercel frontend
+  ],
 
-  // ✅ GitHub OAuth
-  socialProviders: {
-    github: {
-      clientId: process.env.GITHUB_CLIENT_ID,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    },
-  },
-
-  // ✅ Device flow plugin
   plugins: [
     deviceAuthorization({
       expiresIn: "30m",
@@ -34,7 +23,13 @@ export const auth = betterAuth({
     }),
   ],
 
-  // ✅ Helpful for debugging
+  socialProviders: {
+    github: {
+      clientId: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    },
+  },
+
   logger: {
     level: "debug",
   },
