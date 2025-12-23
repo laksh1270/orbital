@@ -1,32 +1,19 @@
-import express from "express";
-import cors from "cors";
-import { auth } from "./lib/auth.js";
+import { betterAuth } from "better-auth";
+import { prismaAdapter } from "better-auth/adapters/prisma";
 import { toNodeHandler } from "better-auth/node";
+import prisma from "./lib/db.js";
 
-const app = express();
-const port = process.env.PORT || 3005;
-
-const CLIENT_URL = process.env.CLIENT_URL;
-
-app.use(express.json());
-
-app.use(
-  cors({
-    origin: CLIENT_URL,
-    credentials: true,
-  })
-);
-
-/**
- * ✅ THIS IS THE MOST IMPORTANT LINE
- * ❌ DO NOT use *splat
- */
-app.all("/api/auth/*", toNodeHandler(auth));
-
-app.get("/", (req, res) => {
-  res.json({ status: "OK", service: "Orbital Backend" });
+export const auth = betterAuth({
+  database: prismaAdapter(prisma),
+  baseURL: process.env.AUTH_BASE_URL, // https://orbital-d7we.onrender.com
+  basePath: "/api/auth",
+  trustedOrigins: [process.env.CLIENT_URL],
+  socialProviders: {
+    github: {
+      clientId: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    },
+  },
 });
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+export const authHandler = toNodeHandler(auth);
