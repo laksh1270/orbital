@@ -8,12 +8,11 @@ export const auth = betterAuth({
     provider: "postgresql",
   }),
 
-  // 🔥 MUST be Render URL
-  baseURL: process.env.AUTH_BASE_URL,
+  baseURL: process.env.AUTH_BASE_URL, // 🔥 IMPORTANT
   basePath: "/api/auth",
 
   trustedOrigins: [
-    process.env.CLIENT_URL, // Vercel frontend
+    process.env.CLIENT_URL, // 🔥 IMPORTANT
   ],
 
   plugins: [
