@@ -1,35 +1,32 @@
-import { betterAuth } from "better-auth";
-import { prismaAdapter } from "better-auth/adapters/prisma";
-import prisma from "./db.js";
-import { deviceAuthorization } from "better-auth/plugins";
+import express from "express";
+import cors from "cors";
+import { auth } from "./lib/auth.js";
+import { toNodeHandler } from "better-auth/node";
 
-export const auth = betterAuth({
-  database: prismaAdapter(prisma, {
-    provider: "postgresql",
-  }),
+const app = express();
+const port = process.env.PORT || 3005;
 
-  baseURL: process.env.AUTH_BASE_URL, // 🔥 IMPORTANT
-  basePath: "/api/auth",
+const CLIENT_URL = process.env.CLIENT_URL;
 
-  trustedOrigins: [
-    process.env.CLIENT_URL, // 🔥 IMPORTANT
-  ],
+app.use(express.json());
 
-  plugins: [
-    deviceAuthorization({
-      expiresIn: "30m",
-      interval: "5s",
-    }),
-  ],
+app.use(
+  cors({
+    origin: CLIENT_URL,
+    credentials: true,
+  })
+);
 
-  socialProviders: {
-    github: {
-      clientId: process.env.GITHUB_CLIENT_ID,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    },
-  },
+/**
+ * ✅ THIS IS THE MOST IMPORTANT LINE
+ * ❌ DO NOT use *splat
+ */
+app.all("/api/auth/*", toNodeHandler(auth));
 
-  logger: {
-    level: "debug",
-  },
+app.get("/", (req, res) => {
+  res.json({ status: "OK", service: "Orbital Backend" });
+});
+
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
